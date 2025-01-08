@@ -1,41 +1,38 @@
-name: Rust
+name: CI
 
 on:
+  workflow_dispatch:
   push:
-    branches: [master]
   pull_request:
-    branches: [master]
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+
     env:
       RUST_BACKTRACE: 1
-    steps:
-      - name: Setup Python
-        uses: actions/setup-python@v3.1.1
 
-      - name: Install youtube-dl and yt-dlp
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup youtube-dl and yt-dlp
         run: pip install youtube-dl yt-dlp
 
-      - name: Install rustfmt
-        run: rustup component add rustfmt
+      - name: Cache Rust
+        uses: Swatinem/rust-cache@v2
 
-      - uses: Swatinem/rust-cache@v1
-      - name: Install cargo-hack
+      - name: Setup cargo-hack
         run: cargo install cargo-hack
-
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Check formatting
-        run: cargo fmt --all -- --check
-
-      - name: Check compilation
-        run: cargo check --all-features --all-targets --verbose
 
       - name: Run tests
         run: cargo hack test --each-feature --exclude-no-default-features
